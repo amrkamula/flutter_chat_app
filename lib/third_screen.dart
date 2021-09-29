@@ -107,7 +107,13 @@ class _ThirdScreenState extends State<ThirdScreen> {
                                                   width: MediaQuery.of(context).size.width*0.4,
                                                   child: Image.network(message.content,fit: BoxFit.fill,),
                                                 ),
-                                              ):Text(message.content,style: TextStyle(color:(message.senderId == widget.uid)?Colors.white:Colors.grey,fontSize: 20.0),),
+                                              ):Container(
+                                                width:MediaQuery.of(context).size.width*0.6,
+                                                child: Text(message.content,
+                                                  style: TextStyle(
+                                                    color:(message.senderId == widget.uid)?Colors.white:Colors.grey,
+                                                    fontSize: 18.0),),
+                                              ),
                                             ],
                                           ),
                                         ),
