@@ -9,6 +9,7 @@ import 'package:intl/intl.dart';
 import 'package:path/path.dart' as p;
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ThirdScreen extends StatefulWidget {
   final String uid;
@@ -34,6 +35,8 @@ class _ThirdScreenState extends State<ThirdScreen> {
         actions: [
           IconButton(onPressed: () async{
               await FirebaseAuth.instance.signOut();
+              SharedPreferences _sharedPreferences =  await SharedPreferences.getInstance();
+              _sharedPreferences.setBool('remembered', false);
               Navigator.of(context).pop();
           }, icon: Icon(Icons.clear,color: Colors.white,)),
           SizedBox(width: 10.0,)

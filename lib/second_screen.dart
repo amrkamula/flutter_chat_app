@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app_flash_chat/third_screen.dart';
 import 'package:flutter_app_flash_chat/validators.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SecondScreen extends StatefulWidget {
   final int flag;
@@ -17,6 +18,25 @@ class _SecondScreenState extends State<SecondScreen> {
   TextEditingController _emailController = TextEditingController();
   TextEditingController _passwordController = TextEditingController();
   FirebaseAuth _auth = FirebaseAuth.instance;
+  bool? _checkValue;
+
+  _checkRemembered() async {
+    SharedPreferences _sharedPreferences = await SharedPreferences.getInstance();
+    if(_sharedPreferences.getBool('remembered') == true){
+      _emailController.text = _sharedPreferences.getString('mail')!;
+      _passwordController.text = _sharedPreferences.getString('password')!;
+      _checkValue = true;
+    }
+  }
+
+  @override
+  void initState() {
+    _checkValue = false;
+    _checkRemembered();
+    // TODO: implement initState
+    super.initState();
+  }
+
 
   @override
   void dispose() {
@@ -103,24 +123,7 @@ class _SecondScreenState extends State<SecondScreen> {
             )),
             SizedBox(height: 40.0,),
             (widget.flag==0)?GestureDetector(
-              onTap: () async{
-                  if(_key.currentState!.validate()){
-                    try{
-                      var credentials = await _auth.signInWithEmailAndPassword(
-                          email: _emailController.text,
-                          password: _passwordController.text);
-                      _emailController.clear();
-                      _passwordController.clear();
-                      Navigator.of(context).push(
-                        MaterialPageRoute(builder: (context)=>ThirdScreen(uid: credentials.user!.uid,uMail: credentials.user!.email!,))
-                      );
-                    }catch(e){
-                      ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('${e.toString()}',style: TextStyle(color: Colors.white,fontSize: 22.0),),duration: Duration(seconds: 3),backgroundColor: Colors.blue,)
-                      );
-                    }
-                  }
-              },
+              onTap:()=> _logIn(),
               child: Container(
                 width: MediaQuery.of(context).size.width*0.7,
                 child: Card(
@@ -176,6 +179,37 @@ class _SecondScreenState extends State<SecondScreen> {
                 ),
               ),
             ),
+            Visibility(
+                visible: widget.flag == 0,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 50.0,vertical: 20.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Checkbox(
+                          value: _checkValue,
+                          onChanged: (value) async {
+                        SharedPreferences _sharedPreferences = await SharedPreferences.getInstance();
+                        if(value == true){
+                          if(_key.currentState!.validate()){
+                            setState(() {
+                              _checkValue = value;
+                            });
+                            _sharedPreferences.setBool('remembered', true);
+                            _sharedPreferences.setString('mail', _emailController.text);
+                            _sharedPreferences.setString('password', _passwordController.text);
+                          }
+                        }else{
+                          setState(() {
+                            _checkValue = value;
+                          });
+                          _sharedPreferences.setBool('remembered', false);
+                        }
+                          }),
+                      Text('Remember me',style: TextStyle(color: Colors.blueAccent,fontSize: 18.0),)
+                    ],
+                  ),
+                )),
 
 
           ],
@@ -183,4 +217,26 @@ class _SecondScreenState extends State<SecondScreen> {
       ),
     );
   }
-}
+
+
+
+  _logIn() async {
+      if(_key.currentState!.validate()){
+        try{
+          var credentials = await _auth.signInWithEmailAndPassword(
+              email: _emailController.text,
+              password: _passwordController.text);
+          _emailController.clear();
+          _passwordController.clear();
+          Navigator.of(context).push(
+              MaterialPageRoute(builder: (context)=>ThirdScreen(uid: credentials.user!.uid,uMail: credentials.user!.email!,))
+          );
+        }catch(e){
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('${e.toString()}',style: TextStyle(color: Colors.white,fontSize: 22.0),),duration: Duration(seconds: 3),backgroundColor: Colors.blue,)
+          );
+        }
+      }
+    }
+  }
+
